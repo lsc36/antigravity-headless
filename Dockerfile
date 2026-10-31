@@ -61,18 +61,16 @@ RUN set -eux; \
 COPY entrypoint.sh /usr/local/bin/antigravity-headless
 RUN chmod +x /usr/local/bin/antigravity-headless
 
-# Create non-root user and default directories
-RUN useradd -m -u 1000 -s /bin/bash antigravity \
-  && mkdir -p /workspace /home/antigravity/.gemini /home/antigravity/.config/Antigravity /home/antigravity/.config/antigravity \
-  && chown -R antigravity:antigravity /workspace /home/antigravity
+# Create non-root user; /home/antigravity can be bind-mounted to persist all state
+RUN useradd -m -u 1000 -s /bin/bash antigravity
 
 USER antigravity
-WORKDIR /workspace
+WORKDIR /home/antigravity
+VOLUME ["/home/antigravity"]
 
 ENV HOME=/home/antigravity \
     HTTP_PORT=8080 \
-    HTTPS_PORT=8443 \
-    REMOTE_ACCESSIBLE=1
+    HTTPS_PORT=8443
 
 EXPOSE 8080 8443
 

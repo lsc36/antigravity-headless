@@ -29,9 +29,12 @@ Use [`publish.sh`](publish.sh) to build and tag the image with the pinned Antigr
 
 ## Running the Container
 
+Bind-mounting `/home/antigravity` persists all authentication credentials, settings, conversations, and projects across container upgrades.
+
 ### Using Docker Compose
 
 ```bash
+mkdir -p ./home
 docker compose up -d --build
 ```
 
@@ -42,15 +45,14 @@ docker compose logs -f
 docker attach antigravity-headless
 ```
 
-To reuse your existing host authentication and state instead of isolated volumes, bind-mount `~/.gemini` and `~/.config/antigravity`:
+### Using `docker run`
 
 ```bash
+mkdir -p ./home
 docker run -it --rm \
   -p 8080:8080 \
   -p 8443:8443 \
-  -v "$HOME/.gemini:/home/antigravity/.gemini" \
-  -v "$HOME/.config/antigravity:/home/antigravity/.config/antigravity" \
-  -v "$PWD:/workspace" \
+  -v "$PWD/home:/home/antigravity" \
   antigravity-headless:latest
 ```
 
@@ -60,5 +62,3 @@ Then open `http://localhost:8080/` (or `https://localhost:8443/`) in your browse
 
 - `HTTP_PORT` (default: `8080`): Plain HTTP port.
 - `HTTPS_PORT` (default: `8443`): HTTPS port.
-- `REMOTE_ACCESSIBLE` (default: `1`): Bind to `0.0.0.0` (`1`) or `127.0.0.1` (`0`).
-- `CSRF_TOKEN`: Optional fixed CSRF token (auto-generated UUID by default).

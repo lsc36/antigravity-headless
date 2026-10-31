@@ -4,4 +4,4 @@ README.md
 docker-compose.yml
 publish.sh
 update_version.py
-workspace/
+home/
