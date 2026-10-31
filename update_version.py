@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch official Antigravity releases and update pinned ARGs in Dockerfile."""
+"""Fetch official Antigravity releases and update pinned version in Dockerfile & docker-compose.yml."""
 
 from __future__ import annotations
 
@@ -13,16 +13,19 @@ import urllib.request
 RELEASES_URL = (
     "https://antigravity-hub-auto-updater-974169037036.us-central1.run.app/releases"
 )
-DOCKERFILE_PATH = Path(__file__).resolve().parent / "Dockerfile"
+BASE_DIR = Path(__file__).resolve().parent
+DOCKERFILE_PATH = BASE_DIR / "Dockerfile"
+COMPOSE_PATH = BASE_DIR / "docker-compose.yml"
 
 VERSION_RE = re.compile(r"^(ARG\s+ANTIGRAVITY_VERSION=)(.+)$", re.MULTILINE)
 EXEC_ID_RE = re.compile(r"^(ARG\s+ANTIGRAVITY_EXECUTION_ID=)(.+)$", re.MULTILINE)
+COMPOSE_VER_RE = re.compile(r"(\$\{ANTIGRAVITY_VERSION:-)([^}]+)(\})")
 
 
 def fetch_releases() -> list[dict[str, str]]:
     req = urllib.request.Request(
         RELEASES_URL,
-        headers={"User-Agent": "antigravity-docker-updater/1.0"},
+        headers={"User-Agent": "antigravity-headless-updater/1.0"},
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
         data = json.loads(resp.read().decode("utf-8"))
@@ -41,7 +44,9 @@ def read_current_pin(dockerfile: Path) -> tuple[str | None, str | None]:
     )
 
 
-def update_dockerfile(dockerfile: Path, version: str, execution_id: str) -> None:
+def update_files(
+    dockerfile: Path, compose_file: Path, version: str, execution_id: str
+) -> None:
     content = dockerfile.read_text(encoding="utf-8")
     content, n_ver = VERSION_RE.subn(rf"\g<1>{version}", content)
     content, n_exec = EXEC_ID_RE.subn(rf"\g<1>{execution_id}", content)
@@ -51,10 +56,17 @@ def update_dockerfile(dockerfile: Path, version: str, execution_id: str) -> None
         )
     dockerfile.write_text(content, encoding="utf-8")
 
+    if compose_file.is_file():
+        compose_content = compose_file.read_text(encoding="utf-8")
+        compose_content = COMPOSE_VER_RE.sub(
+            rf"\g<1>{version}\g<3>", compose_content
+        )
+        compose_file.write_text(compose_content, encoding="utf-8")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Update pinned Antigravity version in Dockerfile."
+        description="Update pinned Antigravity version in Dockerfile and docker-compose.yml."
     )
     parser.add_argument(
         "version",
@@ -121,9 +133,9 @@ def main() -> int:
         )
         return 1
 
-    update_dockerfile(args.dockerfile, new_version, new_exec_id)
+    update_files(args.dockerfile, COMPOSE_PATH, new_version, new_exec_id)
     print(
-        f"Updated Dockerfile: {cur_version or 'none'} -> {new_version} (execution_id: {new_exec_id})"
+        f"Updated pinned version: {cur_version or 'none'} -> {new_version} (execution_id: {new_exec_id})"
     )
     return 0
 

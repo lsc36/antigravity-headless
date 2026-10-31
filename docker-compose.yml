@@ -2,7 +2,10 @@ services:
   antigravity:
     build:
       context: .
-    image: antigravity-headless:latest
+      tags:
+        - "${IMAGE_REPO:-antigravity-headless}:${ANTIGRAVITY_VERSION:-2.28.2}"
+        - "${IMAGE_REPO:-antigravity-headless}:latest"
+    image: "${IMAGE_REPO:-antigravity-headless}:${ANTIGRAVITY_VERSION:-2.28.2}"
     container_name: antigravity-headless
     stdin_open: true
     tty: true

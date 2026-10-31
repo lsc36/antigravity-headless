@@ -4,6 +4,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG ANTIGRAVITY_VERSION=2.28.2
 ARG ANTIGRAVITY_EXECUTION_ID=5937220255875072
 
+LABEL org.opencontainers.image.title="antigravity-headless" \
+      org.opencontainers.image.description="Headless Google Antigravity 2.0 web server" \
+      org.opencontainers.image.version="${ANTIGRAVITY_VERSION}"
+
 # Install runtime dependencies, agent tools (git, ripgrep, python3), and
 # shared libraries required by the bundled Electron/Node runtime (agy-node).
 RUN apt-get update && apt-get install -y --no-install-recommends \
