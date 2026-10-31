@@ -16,5 +16,8 @@ services:
       - HTTP_PORT=8080
       - HTTPS_PORT=8443
     volumes:
-      - "${ANTIGRAVITY_HOME:-./home}:/home/antigravity"
+      - antigravity-data:/home/antigravity
     restart: unless-stopped
+
+volumes:
+  antigravity-data:

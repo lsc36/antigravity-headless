@@ -21,6 +21,19 @@ HTTPS_PORT="${JETSKI_LS_PORT:-${HTTPS_PORT:-8443}}"
 HTTP_PORT="${HTTP_PORT:-8080}"
 CSRF_TOKEN="$(cat /proc/sys/kernel/random/uuid)"
 
+# Ensure /home/antigravity is owned and writable by antigravity even if Docker
+# mounted a host directory initially created by root.
+if [ ! -w "${HOME}" ] || [ "$(id -u)" != "$(stat -c '%u' "${HOME}" 2>/dev/null)" ]; then
+  sudo chown antigravity:antigravity "${HOME}"
+  sudo chmod u+rwx "${HOME}"
+fi
+
+for dir in "${HOME}/.gemini" "${CONFIG_HOME}" "${CONFIG_HOME}/antigravity" "${USER_DATA_DIR}"; do
+  if [ -e "${dir}" ] && [ ! -w "${dir}" ]; then
+    sudo chown -R antigravity:antigravity "${dir}"
+  fi
+done
+
 # Ensure home state directories exist (supports fresh bind-mounted /home/antigravity)
 AGY_BIN_DIR="${USER_DATA_DIR}/bin"
 AGY_NODE_WRAPPER="${AGY_BIN_DIR}/agy-node"

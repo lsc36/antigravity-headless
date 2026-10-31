@@ -62,8 +62,13 @@ RUN set -eux; \
 COPY entrypoint.sh /usr/local/bin/antigravity-headless
 RUN chmod +x /usr/local/bin/antigravity-headless
 
-# Create non-root user with passwordless sudo; /home/antigravity can be bind-mounted to persist all state
-RUN useradd -m -u 1000 -s /bin/bash -G sudo antigravity \
+# Create non-root user with passwordless sudo (default UID 10001 avoids collisions with host users);
+# /home/antigravity can be mounted via named volume or bind mount to persist state
+ARG USER_UID=10001
+ARG USER_GID=10001
+
+RUN groupadd -g ${USER_GID} antigravity \
+  && useradd -m -u ${USER_UID} -g antigravity -s /bin/bash -G sudo antigravity \
   && echo "antigravity ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/antigravity \
   && chmod 0440 /etc/sudoers.d/antigravity
 

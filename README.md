@@ -27,14 +27,18 @@ Use [`publish.sh`](publish.sh) to build and tag the image with the pinned Antigr
 ./publish.sh --push <region>-docker.pkg.dev/<project>/<repo>/antigravity-headless
 ```
 
+### Build Arguments
+
+- `USER_UID` (default: `10001`): Non-root user ID inside the container (chosen to avoid overlap with standard host user accounts 1000+).
+- `USER_GID` (default: `10001`): Non-root group ID.
+
 ## Running the Container
 
-Bind-mounting `/home/antigravity` persists all authentication credentials, settings, conversations, and projects across container upgrades.
+Mounting `/home/antigravity` persists all authentication credentials, settings, conversations, and projects across container upgrades.
 
-### Using Docker Compose
+### Using Docker Compose (Named Volume - Recommended)
 
 ```bash
-mkdir -p ./home
 docker compose up -d --build
 ```
 
@@ -47,8 +51,17 @@ docker attach antigravity-headless
 
 ### Using `docker run`
 
+With a named volume:
 ```bash
-mkdir -p ./home
+docker run -it --rm \
+  -p 8080:8080 \
+  -p 8443:8443 \
+  -v antigravity-data:/home/antigravity \
+  antigravity-headless:latest
+```
+
+With a host directory bind mount:
+```bash
 docker run -it --rm \
   -p 8080:8080 \
   -p 8443:8443 \
