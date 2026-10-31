@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     python3 \
     ripgrep \
+    sudo \
     tar \
     uuid-runtime \
   && rm -rf /var/lib/apt/lists/*
@@ -61,8 +62,10 @@ RUN set -eux; \
 COPY entrypoint.sh /usr/local/bin/antigravity-headless
 RUN chmod +x /usr/local/bin/antigravity-headless
 
-# Create non-root user; /home/antigravity can be bind-mounted to persist all state
-RUN useradd -m -u 1000 -s /bin/bash antigravity
+# Create non-root user with passwordless sudo; /home/antigravity can be bind-mounted to persist all state
+RUN useradd -m -u 1000 -s /bin/bash -G sudo antigravity \
+  && echo "antigravity ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/antigravity \
+  && chmod 0440 /etc/sudoers.d/antigravity
 
 USER antigravity
 WORKDIR /home/antigravity
