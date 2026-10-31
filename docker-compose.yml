@@ -1,0 +1,24 @@
+services:
+  antigravity:
+    build:
+      context: .
+    image: antigravity-headless:latest
+    container_name: antigravity-headless
+    stdin_open: true
+    tty: true
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+      - "${HTTPS_PORT:-8443}:8443"
+    environment:
+      - HTTP_PORT=8080
+      - HTTPS_PORT=8443
+      - REMOTE_ACCESSIBLE=1
+    volumes:
+      - antigravity-gemini:/home/antigravity/.gemini
+      - antigravity-config:/home/antigravity/.config
+      - ./workspace:/workspace
+    restart: unless-stopped
+
+volumes:
+  antigravity-gemini:
+  antigravity-config:
